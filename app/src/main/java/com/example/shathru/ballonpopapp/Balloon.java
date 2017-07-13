@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
@@ -14,6 +15,7 @@ import com.example.shathru.ballonpopapp.Util.PixelHelper;
 public class Balloon extends ImageView implements ValueAnimator.AnimatorUpdateListener, Animator.AnimatorListener {
     private ValueAnimator mAnimator;
     private BalloonListener mListener;
+    private boolean mBalloonPopped;
 
     public Balloon(Context context) {
         super(context);
@@ -57,13 +59,25 @@ public class Balloon extends ImageView implements ValueAnimator.AnimatorUpdateLi
     }
 
     @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (!mBalloonPopped && event.getAction() == MotionEvent.ACTION_DOWN) {
+            mListener.popBalloon(this, true);
+            mBalloonPopped = true;
+            mAnimator.cancel();
+        }
+        return super.onTouchEvent(event);
+    }
+
+    @Override
     public void onAnimationStart(Animator animation) {
 
     }
 
     @Override
     public void onAnimationEnd(Animator animation) {
-
+        if (!mBalloonPopped) {
+            mListener.popBalloon(this, false);
+        }
     }
 
     @Override

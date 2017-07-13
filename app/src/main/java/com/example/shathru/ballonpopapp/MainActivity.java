@@ -13,7 +13,7 @@ import android.widget.Button;
 import java.util.Date;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Balloon.BalloonListener {
 
     private ViewGroup mContentView;
     private int[] mBalloonColors = new int[3];
@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int MIN_ANIMATION_DURATION = 1000;
     public static final int MAX_ANIMATION_DURATION = 8000;
     private int mLevel;
+    private int mScore;
 
     private Button mGoButton;
 
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setGoButtonClickListener() {
         mGoButton.setOnClickListener((v) -> {
-                startLevel();
+            startLevel();
         });
     }
 
@@ -120,6 +121,19 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         setToFullScreen();
+    }
+
+    @Override
+    public void popBalloon(Balloon balloon, boolean userTouch) {
+        mContentView.removeView(balloon);
+        if (userTouch) {
+            mScore++;
+        }
+        updateDisplay();
+    }
+
+    private void updateDisplay() {
+        // TODO: 7/13/2017 Update the display with the score 
     }
 
 
