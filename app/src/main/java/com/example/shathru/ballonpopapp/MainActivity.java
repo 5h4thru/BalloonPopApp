@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.example.shathru.ballonpopapp.Util.HighScoreHelper;
 import com.example.shathru.ballonpopapp.Util.SimpleAlertDialog;
+import com.example.shathru.ballonpopapp.Util.SoundHelper;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
     private boolean mPlaying;
     private boolean mGameStopped = true; // game is stopped when you open the app for the first time
     private int mBalloonsPopped;
+    private SoundHelper mSoundHelper;
 
 
     @Override
@@ -66,6 +68,9 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
         setGoButtonClickListener();
         setDisplayLevelAndScore();
         updateDisplay();
+
+        mSoundHelper = new SoundHelper(this);
+        mSoundHelper.prepareMusicPlayer(this);
 
 //        setContentViewTouchListener();
     }
@@ -158,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
         }
         mGameStopped = false;
         startLevel();
+        mSoundHelper.playMusic();
     }
 
     private void startLevel() {
@@ -186,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
     @Override
     public void popBalloon(Balloon balloon, boolean userTouch) {
         mBalloonsPopped++;
+        mSoundHelper.playSound();
 
         mContentView.removeView(balloon);
         mBalloons.remove(balloon);
@@ -214,6 +221,7 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
 
     private void gameOver(boolean allPinsUsed) {
         Toast.makeText(this, "Game Over!", Toast.LENGTH_SHORT).show();
+        mSoundHelper.pauseMusic();
 
         for (Balloon balloon : mBalloons) {
             mContentView.removeView(balloon);
