@@ -13,6 +13,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.shathru.ballonpopapp.Util.HighScoreHelper;
+import com.example.shathru.ballonpopapp.Util.SimpleAlertDialog;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
     private static final int MIN_ANIMATION_DURATION = 1000;
     private static final int MAX_ANIMATION_DURATION = 8000;
     private static final int NUMBER_OF_PINS = 5;
-    private static final int BALLOONS_PER_LEVEL = 3;
+    private static final int BALLOONS_PER_LEVEL = 10;
 
     private ViewGroup mContentView;
     private int[] mBalloonColors = new int[3];
@@ -209,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
         }
     }
 
-    private void gameOver(boolean b) {
+    private void gameOver(boolean allPinsUsed) {
         Toast.makeText(this, "Game Over!", Toast.LENGTH_SHORT).show();
 
         for (Balloon balloon : mBalloons) {
@@ -220,6 +223,15 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
         mPlaying = false;
         mGameStopped = true;
         mGoButton.setText("Start game");
+
+        if (allPinsUsed) {
+            if (HighScoreHelper.isTopScore(this, mScore)) {
+                // save the new top score
+                HighScoreHelper.setTopScore(this, mScore);
+                SimpleAlertDialog dialog = SimpleAlertDialog.newInstance("New High Score!", String.format("Your new high score is %d", mScore));
+                dialog.show(getSupportFragmentManager(), null);
+            }
+        }
     }
 
     private void updateDisplay() {
