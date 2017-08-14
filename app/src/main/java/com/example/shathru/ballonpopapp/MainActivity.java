@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
     private static final int MIN_ANIMATION_DURATION = 1000;
     private static final int MAX_ANIMATION_DURATION = 8000;
     private static final int NUMBER_OF_PINS = 5;
+    private static final int BALLOONS_PER_LEVEL = 3;
 
     private ViewGroup mContentView;
     private int[] mBalloonColors = new int[3];
@@ -35,11 +36,15 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
     private int mScore;
     private int mPinsUsed;
     private List<ImageView> mPinImages = new ArrayList<>();
+    private List<Balloon> mBalloons = new ArrayList<>();
 
     // Views
     private Button mGoButton;
     private TextView mScoreDisplay;
     private TextView mLevelDisplay;
+    private boolean mPlaying;
+    private boolean mGameStopped = true; // game is stopped when you open the app for the first time
+    private int mBalloonsPopped;
 
 
     @Override
@@ -74,7 +79,13 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
 
     private void setGoButtonClickListener() {
         mGoButton.setOnClickListener((v) -> {
-            startLevel();
+            if (mPlaying) {
+                gameOver(false);
+            } else if (mGameStopped) {
+                startGame();
+            } else {
+                startLevel();
+            }
         });
     }
 
@@ -134,12 +145,33 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 
+    private void startGame() {
+        setToFullScreen();
+        mScore = 0;
+        mLevel = 0;
+        mPinsUsed = 0;
+        for (ImageView pin : mPinImages) {
+            pin.setImageResource(R.drawable.pin);
+        }
+        mGameStopped = false;
+        startLevel();
+    }
+
     private void startLevel() {
         mLevel++;
         updateDisplay();
         // AsyncTask
         BalloonLauncher launcher = new BalloonLauncher();
         launcher.execute(mLevel);
+        mPlaying = true;
+        mBalloonsPopped = 0;
+        mGoButton.setText("Stop game");
+    }
+
+    private void finishLevel() {
+        Toast.makeText(this, String.format("You finished level %d", mLevel), Toast.LENGTH_SHORT).show();
+        mPlaying = false;
+        mGoButton.setText(String.format("Start level %d", mLevel + 1));
     }
 
     @Override
@@ -150,7 +182,11 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
 
     @Override
     public void popBalloon(Balloon balloon, boolean userTouch) {
+        mBalloonsPopped++;
+
         mContentView.removeView(balloon);
+        mBalloons.remove(balloon);
+
         if (userTouch) {
             mScore++;
         } else {
@@ -163,14 +199,27 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
                 return;
             } else {
                 // Pins still remaining
-                Toast.makeText(this, "Missed that one!", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Missed that one!", Toast.LENGTH_SHORT).show();
             }
         }
         updateDisplay();
+
+        if (mBalloonsPopped == BALLOONS_PER_LEVEL) {
+            finishLevel();
+        }
     }
 
     private void gameOver(boolean b) {
-        //TODO Implement gameOver logic
+        Toast.makeText(this, "Game Over!", Toast.LENGTH_SHORT).show();
+
+        for (Balloon balloon : mBalloons) {
+            mContentView.removeView(balloon);
+            balloon.setPopped(true);
+        }
+        mBalloons.clear();
+        mPlaying = false;
+        mGameStopped = true;
+        mGoButton.setText("Start game");
     }
 
     private void updateDisplay() {
@@ -197,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
             int minDelay = maxDelay / 2;
 
             int balloonsLaunched = 0;
-            while (balloonsLaunched < 3) {
+            while (mPlaying && balloonsLaunched < BALLOONS_PER_LEVEL) {
 
                 // Get a random horizontal position for the next balloon
                 Random random = new Random(new Date().getTime());
@@ -230,6 +279,7 @@ public class MainActivity extends AppCompatActivity implements Balloon.BalloonLi
     private void launchBalloon(int x) {
 
         Balloon balloon = new Balloon(this, mBalloonColors[mNextColor], 150);
+        mBalloons.add(balloon);
 
         if (mNextColor + 1 == mBalloonColors.length) {
             mNextColor = 0;

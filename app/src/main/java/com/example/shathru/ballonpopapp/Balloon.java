@@ -49,6 +49,14 @@ public class Balloon extends ImageView implements ValueAnimator.AnimatorUpdateLi
         mAnimator.start();
     }
 
+    public void setPopped(boolean popped) {
+        mBalloonPopped = popped;
+        if (popped) {
+            mAnimator.cancel();
+        }
+    }
+
+
     public interface BalloonListener {
         void popBalloon(Balloon balloon, boolean userTouch);
     }
